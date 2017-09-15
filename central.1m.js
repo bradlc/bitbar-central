@@ -106,7 +106,7 @@ async function checkIn () {
   await login()
   await request({
     method: 'post',
-    url: `${BASE_URL}`,
+    url: BASE_URL,
     form: { 'data[Time][status]': 'Check In' }
   })
 }
@@ -115,7 +115,7 @@ async function checkOut () {
   await login()
   await request({
     method: 'post',
-    url: `${BASE_URL}`,
+    url: BASE_URL,
     form: { 'data[Time][status]': 'Check Out' }
   })
 }
