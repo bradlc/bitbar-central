@@ -28,7 +28,7 @@ const pWithDot = 'iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAACXBIWXMAABYlAA
     return renderGuest()
   }
 
-  return renderUser()
+  return renderUser(cookie[1])
 })()
 
 async function renderGuest () {
@@ -55,9 +55,9 @@ async function renderGuest () {
   })
 }
 
-async function renderUser () {
+async function renderUser (userId) {
   const res = await request({
-    url: `${BASE_URL}/times/employee/${EMPLOYEE_ID}`
+    url: `${BASE_URL}/times/employee/${userId}`
   })
 
   const $ = cheerio.load(res.body)
