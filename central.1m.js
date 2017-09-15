@@ -22,14 +22,22 @@ const pWithDot = 'iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAACXBIWXMAABYlAA
 
   if (process.argv.indexOf('--out') !== -1) return checkOut()
 
-  const cookie = JAR.getCookieString(BASE_URL).match(/CakeCookie\[employee_id\]=([0-9]+)/)
+  const userId = getCurrentUserId()
 
-  if (cookie === null) {
+  if (userId === -1) {
     return renderGuest()
   }
 
-  return renderUser(cookie[1])
+  return renderUser(userId)
 })()
+
+function getCurrentUserId () {
+  const cookie = JAR.getCookieString(BASE_URL).match(/CakeCookie\[employee_id\]=([0-9]+)/)
+
+  if (cookie === null) return -1
+
+  return cookie[1]
+}
 
 async function renderGuest () {
   const res = await request({
