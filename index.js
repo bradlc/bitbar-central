@@ -9,7 +9,8 @@ const writeFile = promisify(fs.writeFile)
 const write = promisify(fs.write)
 let request = promisify(require('request'))
 
-const CURRENT_SCRIPT = process.argv[1]
+const CURRENT_SCRIPT =
+  typeof process.pkg === 'undefined' ? process.argv[1] : process.argv[0]
 const BASE_URL = 'http://central.expose.app'
 const COOKIE_FILE = `${process.env.HOME}/.centralrc`
 let COOKIE_JAR
