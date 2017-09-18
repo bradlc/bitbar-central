@@ -83,7 +83,7 @@ async function renderUser (userId) {
 
   console.log('---')
 
-  const weekRemaining = $('.over-under').eq(1).text().match(/(over|under) by (([0-9]{1,2}) hrs )?([0-9]{1,2}) mins/)
+  const weekRemaining = $('.over-under').eq(1).text().match(/(over|under) by (([0-9]{1,2}) hrs? )?([0-9]{1,2}) mins?/)
   const weekRemainingHours = weekRemaining[3] !== undefined ? weekRemaining[3] : 0
   const weekRemainingMins = weekRemaining[4].padStart(2, '0')
 
