@@ -22,17 +22,17 @@ const pWithDot = 'iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAACXBIWXMAABYlAA
   COOKIE_JAR = await getCookieJar()
   request = request.defaults({ followAllRedirects: true, jar: COOKIE_JAR })
 
-  if (process.argv.indexOf('--in') !== -1) return checkIn()
+  if (process.argv.includes('--in')) return checkIn()
 
-  if (process.argv.indexOf('--out') !== -1) return checkOut()
+  if (process.argv.includes('--out')) return checkOut()
 
-  if (process.argv.indexOf('-login') !== -1) {
+  if (process.argv.includes('-login')) {
     // the last arg is the user id
     const userId = process.argv[process.argv.length - 1]
     return login(userId)
   }
 
-  if (process.argv.indexOf('--logout') !== -1) return logout()
+  if (process.argv.includes('--logout')) return logout()
 
   const userId = getCurrentUserId()
 
