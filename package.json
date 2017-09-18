@@ -4,10 +4,17 @@
   "main": "index.js",
   "author": "Brad Cornes",
   "license": "MIT",
+  "scripts": {
+    "pkg":
+      "pkg -t latest-macos-x64 index.js && mkdir -p dist && mv index dist/central"
+  },
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
     "lodash.get": "^4.4.2",
     "request": "^2.81.0",
     "tough-cookie-filestore": "^0.0.1"
+  },
+  "devDependencies": {
+    "pkg": "^4.2.4"
   }
 }
