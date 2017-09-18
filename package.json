@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "pkg":
-      "pkg -t latest-macos-x64 index.js && mkdir -p dist && mv index dist/central"
+      "pkg -t latest-macos-x64 index.js && mkdir -p dist && mv index dist/central.1m"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
