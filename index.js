@@ -11,7 +11,7 @@ let request = promisify(require('request'))
 
 const CURRENT_SCRIPT =
   typeof process.pkg === 'undefined' ? process.argv[1] : process.argv[0]
-const BASE_URL = 'http://central.expose.app'
+const BASE_URL = 'http://central.exposecms.com'
 const COOKIE_FILE = `${process.env.HOME}/.centralrc`
 let COOKIE_JAR
 
