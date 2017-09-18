@@ -7,21 +7,20 @@ const fs = require('fs')
 const openFile = promisify(fs.open)
 const writeFile = promisify(fs.writeFile)
 const write = promisify(fs.write)
+let request = promisify(require('request'))
 
-let JAR
+const CURRENT_SCRIPT = process.argv[1]
 const BASE_URL = 'http://central.expose.app'
 const COOKIE_FILE = `${process.env.HOME}/.centralrc`
-const CURRENT_SCRIPT = process.argv[1]
-
-let request = promisify(require('request'))
+let COOKIE_JAR
 
 const p = 'iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAACXBIWXMAABYlAAAWJQFJUiTwAAABUUlEQVRYw+2Y0W3DIBCG/z/qez1CN0g2KCNkBI/gETxCRmAEd4NkA7JBuoEzwfXlKlmI1ECgtlqfdA/GcHz673wgU0SwJtthZbYB/Q8gkg3JnqQjKZ47fddkEYlIkgPoAIwAZMZHAF1y/EQYGwHiu60CBKAPbOZUMaPe6Zg/ry8KBOAQ2KSbSas//1ASyE9VG7GmzUldDEzjBR4S0jx4a5sSQCZH+gepNnNrYvqQ8dqES2gp7qdY29ERsNuiQCTNqoAAHL1ntxgQyTftRd/2ISLjIkB60g8AXifDw68XtV5LWq2V/eTVRURsTIyXAkoYbYAGwHtg2jVQS2WBVIXOUyFkFwDHmNrJBiJ5fqDE1D71ymFT4+coFIK56yd91sPX5ZbBMzV0B3B6FqAU0FXvRK50y9hlKlMFJhfoVAsmF8iioiUDicitJhC33zEb0F8D+gITUozAEmo0AQAAAABJRU5ErkJggg=='
 
 const pWithDot = 'iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAACXBIWXMAABYlAAAWJQFJUiTwAAABWElEQVRYw+2YwY2DMBBF/1/lvpSQDpYSUgIlUAIdLJ2E7YASnA4ogRJIBbOH9cEaGbAds+TgkUYixh4/DZ75VigieCf7wJtZASpApwCRrEh2JCeSonyy76okIhGJcgA3ADMA2fEZwC06fiRMGwCivT0ECEANYFGbDW4WbPYGNWcBUB8BZNRGzcbcRs01WYFsdtwNuoA1nVpT5wTq3cMakVX38Pcha0LLvnaeh4giHlZivNyHqgw9ryrS4bGr82xOBbLS0ThD89kZ6gB8Or/H04BItgC+naEfEVn+HYhkQ9IAuDvDT9vHguyS4YzUVsO+PNOeVuvmQ4FI9p4zou1hJWbKfh/yCOuWj1vCm0vL1oAWKw/d3mXMdmo3jgFQ5QQafQEjY5hcQGPC1XftE19T1F5XTpurVegKTAEaQ5ucp+p2x1KA5sRkNArgobTur6WUfz8KUAE62H4B7wxgGWRB29oAAAAASUVORK5CYII='
 
 ;(async function () {
-  JAR = await getCookieJar()
-  request = request.defaults({ followAllRedirects: true, jar: JAR })
+  COOKIE_JAR = await getCookieJar()
+  request = request.defaults({ followAllRedirects: true, jar: COOKIE_JAR })
 
   if (process.argv.indexOf('--in') !== -1) return checkIn()
 
@@ -56,7 +55,7 @@ async function getCookieJar () {
 }
 
 function getCurrentUserId () {
-  const cookie = JAR.getCookieString(BASE_URL).match(/CakeCookie\[employee_id\]=([0-9]+)/)
+  const cookie = COOKIE_JAR.getCookieString(BASE_URL).match(/CakeCookie\[employee_id\]=([0-9]+)/)
 
   if (cookie === null) return -1
 
