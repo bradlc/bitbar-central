@@ -3,24 +3,37 @@
 const { promisify } = require('util')
 const cheerio = require('cheerio')
 const FileCookieStore = require('tough-cookie-filestore')
+const fs = require('fs')
+const openFile = promisify(fs.open)
+const writeFile = promisify(fs.writeFile)
+const write = promisify(fs.write)
 
+let JAR
 const BASE_URL = 'http://central.expose.app'
-const EMPLOYEE_ID = 55
 const COOKIE_FILE = `${process.env.HOME}/.centralrc`
 const CURRENT_SCRIPT = process.argv[1]
 
 let request = promisify(require('request'))
-const JAR = request.jar(new FileCookieStore(COOKIE_FILE))
-request = request.defaults({ followAllRedirects: true, jar: JAR })
 
 const p = 'iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAACXBIWXMAABYlAAAWJQFJUiTwAAABUUlEQVRYw+2Y0W3DIBCG/z/qez1CN0g2KCNkBI/gETxCRmAEd4NkA7JBuoEzwfXlKlmI1ECgtlqfdA/GcHz673wgU0SwJtthZbYB/Q8gkg3JnqQjKZ47fddkEYlIkgPoAIwAZMZHAF1y/EQYGwHiu60CBKAPbOZUMaPe6Zg/ry8KBOAQ2KSbSas//1ASyE9VG7GmzUldDEzjBR4S0jx4a5sSQCZH+gepNnNrYvqQ8dqES2gp7qdY29ERsNuiQCTNqoAAHL1ntxgQyTftRd/2ISLjIkB60g8AXifDw68XtV5LWq2V/eTVRURsTIyXAkoYbYAGwHtg2jVQS2WBVIXOUyFkFwDHmNrJBiJ5fqDE1D71ymFT4+coFIK56yd91sPX5ZbBMzV0B3B6FqAU0FXvRK50y9hlKlMFJhfoVAsmF8iioiUDicitJhC33zEb0F8D+gITUozAEmo0AQAAAABJRU5ErkJggg=='
 
 const pWithDot = 'iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAACXBIWXMAABYlAAAWJQFJUiTwAAABWElEQVRYw+2YwY2DMBBF/1/lvpSQDpYSUgIlUAIdLJ2E7YASnA4ogRJIBbOH9cEaGbAds+TgkUYixh4/DZ75VigieCf7wJtZASpApwCRrEh2JCeSonyy76okIhGJcgA3ADMA2fEZwC06fiRMGwCivT0ECEANYFGbDW4WbPYGNWcBUB8BZNRGzcbcRs01WYFsdtwNuoA1nVpT5wTq3cMakVX38Pcha0LLvnaeh4giHlZivNyHqgw9ryrS4bGr82xOBbLS0ThD89kZ6gB8Or/H04BItgC+naEfEVn+HYhkQ9IAuDvDT9vHguyS4YzUVsO+PNOeVuvmQ4FI9p4zou1hJWbKfh/yCOuWj1vCm0vL1oAWKw/d3mXMdmo3jgFQ5QQafQEjY5hcQGPC1XftE19T1F5XTpurVegKTAEaQ5ucp+p2x1KA5sRkNArgobTur6WUfz8KUAE62H4B7wxgGWRB29oAAAAASUVORK5CYII='
 
 ;(async function () {
+  JAR = await getCookieJar()
+  request = request.defaults({ followAllRedirects: true, jar: JAR })
+
   if (process.argv.indexOf('--in') !== -1) return checkIn()
 
   if (process.argv.indexOf('--out') !== -1) return checkOut()
+
+  if (process.argv.indexOf('-login') !== -1) {
+    // the last arg is the user id
+    const userId = process.argv[process.argv.length - 1]
+    return login(userId)
+  }
+
+  if (process.argv.indexOf('--logout') !== -1) return logout()
 
   const userId = getCurrentUserId()
 
@@ -30,6 +43,17 @@ const pWithDot = 'iVBORw0KGgoAAAANSUhEUgAAACQAAAAkCAYAAADhAJiYAAAACXBIWXMAABYlAA
 
   return renderUser(userId)
 })()
+
+async function getCookieJar () {
+  try {
+    const fd = await openFile(COOKIE_FILE, 'wx')
+    await write(fd, '{}', 0, 'utf8')
+  } catch (e) {
+    // file exists
+  }
+
+  return request.jar(new FileCookieStore(COOKIE_FILE))
+}
 
 function getCurrentUserId () {
   const cookie = JAR.getCookieString(BASE_URL).match(/CakeCookie\[employee_id\]=([0-9]+)/)
@@ -46,9 +70,16 @@ async function renderGuest () {
 
   const $ = cheerio.load(res.body)
 
-  const users = $('.staff-picker__name').map((i, el) => {
-    return $(el).text()
-  }).get().sort()
+  const users = $('.staff-picker__li > a').map((i, el) => {
+    return {
+      id: $(el).attr('href').split('/').pop(),
+      name: $(el).text().trim()
+    }
+  }).get().sort((a, b) => {
+    if (a.name < b.name) return -1
+    if (a.name > b.name) return 1
+    return 0
+  })
 
   console.log(`| templateImage=${p}`)
 
@@ -59,7 +90,7 @@ async function renderGuest () {
   console.log('Log in')
 
   users.forEach(user => {
-    console.log(`--${user} | href=http://google.co.uk`)
+    console.log(`--${user.name} | bash=${CURRENT_SCRIPT} param1=-login param2=${user.id} terminal=false refresh=true`)
   })
 }
 
@@ -101,17 +132,20 @@ async function renderUser (userId) {
 
   console.log(`Logged in as ${user}`)
 
-  console.log('Log out | bash=$0 param1=--logout terminal=false refresh=true')
+  console.log(`Log out | bash=${CURRENT_SCRIPT} param1=--logout terminal=false refresh=true`)
 }
 
-async function login () {
+async function login (userId) {
   await request({
-    url: `${BASE_URL}/times/employee/${EMPLOYEE_ID}`
+    url: `${BASE_URL}/times/employee/${userId}`
   })
 }
 
+async function logout () {
+  await writeFile(COOKIE_FILE, '{}', 'utf8')
+}
+
 async function checkIn () {
-  await login()
   await request({
     method: 'post',
     url: BASE_URL,
@@ -120,7 +154,6 @@ async function checkIn () {
 }
 
 async function checkOut () {
-  await login()
   await request({
     method: 'post',
     url: BASE_URL,
